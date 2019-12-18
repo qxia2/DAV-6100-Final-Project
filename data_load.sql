@@ -74,3 +74,29 @@ SELECT DISTINCT zip_code
 FROM nyc_real_estate_original.nyc_rolling
 WHERE zip_code IS NOT NULL 
 AND zip_code NOT IN ('', ' ');
+
+LOAD DATA LOCAL INFILE "/Users/natanbienstock/Documents/Grad School/Fall 2019/DAV-6100/Final Project/city_realty_full_cleaned.csv"
+INTO TABLE city_realty
+FIELDS TERMINATED BY ','
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS
+(address, apt_num, neighborhood, building_type, beds, baths, price, sales_date, zip_code);
+
+SELECT * FROM city_realty;
+SELECT * from nyc_rolling LIMIT 5;
+
+LOAD DATA LOCAL INFILE "/Users/natanbienstock/Documents/Grad School/Fall 2019/DAV-6100/Final Project/nyc_rolling_medians.csv"
+INTO TABLE nyc_rolling_median
+FIELDS TERMINATED BY ','
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS
+(`year_month`, `zip_code`, `median_sales_price`);
+
+LOAD DATA LOCAL INFILE "/Users/natanbienstock/Documents/Grad School/Fall 2019/DAV-6100/Final Project/city_realty_cleaned_medians.csv"
+INTO TABLE city_realty_median
+FIELDS TERMINATED BY ','
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS
+(`year_month`, `zip_code`, `median_sales_price`);
+
+SELECT * from city_realty_median LIMIT 10;

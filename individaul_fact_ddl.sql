@@ -19,13 +19,14 @@ DROP TABLE IF EXISTS `location`;
 
 CREATE TABLE `location`(
 	`location_key` int not null primary key auto_increment,
-    `borough` varchar(50),
+    `source_key` varchar(50) not null,
     `neighborhood` varchar(100),
     `address` varchar(100),
     `apartment number` varchar(25),
     `zip code` varchar(5),
     `block` varchar(6),
-    `lot` varchar(6)
+    `lot` varchar(6),
+    `borough` varchar(50)
 );
 
 DROP TABLE IF EXISTS `building_type`;

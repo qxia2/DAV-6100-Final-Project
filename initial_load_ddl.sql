@@ -53,3 +53,38 @@ CREATE TABLE `street_easy` (
 ) ENGINE=InnoDB AUTO_INCREMENT=4095 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
+DROP TABLE IF EXISTS `city_realty`;
+
+CREATE TABLE `city_realty` (
+ `city_realty_key` int(11) NOT NULL AUTO_INCREMENT,
+  `address`varchar(200) DEFAULT NULL,
+  `apt_num` varchar(200) DEFAULT NULL,
+  `neighborhood` varchar(100) DEFAULT NULL,
+  `building_type` varchar(100) DEFAULT NULL,
+  `beds` varchar(10) DEFAULT NULL,
+  `baths` varchar(10) DEFAULT NULL,
+  `price` decimal DEFAULT NULL,
+  `sales_date` varchar(50) DEFAULT NULL,
+  `zip_code` varchar(10) DEFAULT NULL,
+  PRIMARY KEY (`city_realty_key`)
+);
+
+DROP TABLE IF EXISTS `nyc_rolling_median`;
+
+CREATE TABLE `nyc_rolling_median` (
+ `nyc_rolling_median_key` int(11) NOT NULL AUTO_INCREMENT,
+  `year_month`varchar(200) DEFAULT NULL,
+  `zip_code` varchar(10) DEFAULT NULL,
+  `median_sales_price` decimal DEFAULT NULL,
+  PRIMARY KEY (`nyc_rolling_median_key`)
+);
+
+DROP TABLE IF EXISTS `city_realty_median`;
+
+CREATE TABLE `city_realty_median` (
+ `city_realty_median_key` int(11) NOT NULL AUTO_INCREMENT,
+  `year_month`varchar(200) DEFAULT NULL,
+  `zip_code` varchar(10) DEFAULT NULL,
+  `median_sales_price` decimal DEFAULT NULL,
+  PRIMARY KEY (`city_realty_median_key`)
+);

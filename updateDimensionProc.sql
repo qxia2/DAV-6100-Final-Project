@@ -1,3 +1,6 @@
+CREATE DEFINER=`admin`@`%` PROCEDURE `updateDimensionProc`()
+BEGIN
+
 INSERT INTO nyc_real_estate_dw.`date` (`date_string`, `year`, `month`, `day`, `day of week`)
 SELECT DISTINCT sale_date, 
 SUBSTRING_INDEX(sale_date,'-',1) AS 'Year',
@@ -20,7 +23,6 @@ date_format(sale_date, "%W") as `Day of Week`
 FROM nyc_real_estate_original.nyc_rolling
 WHERE sale_date NOT IN (SELECT DISTINCT date_string FROM nyc_real_estate_dw.`date`);
 
-SELECT * FROM nyc_real_estate_dw.date LIMIT 5;
 
 INSERT INTO nyc_real_estate_dw.`date` (`date_string`, `year`, `month`, `day`, `day of week`)
 SELECT DISTINCT str_to_date(sales_date, '%m/%d/%Y') as `Sale_Date`,
@@ -111,58 +113,122 @@ tax_class_at_present
 FROM nyc_real_estate_original.nyc_rolling) AS a
 WHERE Building_Type NOT IN (SELECT DISTINCT building_type FROM nyc_real_estate_dw.building_type);
 
-SELECT * FROM nyc_real_estate_dw.building_type;
- 
-INSERT INTO nyc_real_estate_dw.data_source (`source_key`,`source`)
-VALUES (1, 'City Realty'),
-(2, 'NYC Rolling Sales Data'); 
+INSERT INTO nyc_real_estate_dw_agg.`date` (`year`, `month`)
+SELECT DISTINCT a.YEAR as 'Year', 
+CASE
+WHEN a.Month = '01' THEN 'January'
+WHEN a.Month = '02' THEN 'February'
+WHEN a.Month = '03' THEN 'March'
+WHEN a.Month = '04' THEN 'April'
+WHEN a.Month = '05' THEN 'May'
+WHEN a.Month = '06' THEN 'June'
+WHEN a.Month = '07' THEN 'July'
+WHEN a.Month = '08' THEN 'August'
+WHEN a.Month = '09' THEN 'September'
+WHEN a.Month = '10' THEN 'October'
+WHEN a.Month = '11' THEN 'November'
+WHEN a.Month = '12' THEN 'December'
+END AS 'Month'
+FROM(
+SELECT DISTINCT month_year, 
+SUBSTRING_INDEX(month_year,'-',1) AS 'YEAR',
+SUBSTRING_INDEX(month_year,'-',-1) AS 'Month'
+FROM nyc_real_estate_original.zillow) as a
+WHERE Year NOT IN (SELECT year FROM nyc_real_estate_dw_agg.`date`)
+AND Month NOT IN (SELECT month FROM nyc_real_estate_dw_agg.`date`) 
+;
 
-SELECT * from nyc_real_estate_dw.data_source;
 
-CREATE INDEX source_key_index ON nyc_real_estate_dw.location(source_key);
-CREATE INDEX date_string_index ON nyc_real_estate_dw.`date`(date_string);
-
-
-INSERT INTO nyc_real_estate_dw.building_sale (date_key, location_key, building_type_key, source_key, sale_price)
-SELECT 
-date_key, 
-location_key,
-building_type_key,
-1,
-a.price
-FROM (SELECT *,
-CASE WHEN  building_type = 'condo' OR building_type = 'co-op' OR building_type = 'Condop'
-THEN 2
-WHEN building_type = 'Townhouse' 
-THEN 1 
-END as tax_key
-FROM nyc_real_estate_original.city_realty) as a
-INNER JOIN nyc_real_estate_dw.`date` 
-ON str_to_date(a.sales_date, '%m/%d/%Y') = nyc_real_estate_dw.`date`.date_string
-INNER JOIN nyc_real_estate_dw.location 
-ON CONCAT('CR-', a.city_realty_key) = nyc_real_estate_dw.location.source_key 
-INNER JOIN nyc_real_estate_dw.building_type
-ON a.tax_key = nyc_real_estate_dw.building_type.tax_key
+INSERT INTO nyc_real_estate_dw_agg.`date` (`year`, `month`)
+SELECT DISTINCT a.YEAR as 'Year', 
+CASE
+WHEN a.Month = '1' THEN 'January'
+WHEN a.Month = '2' THEN 'February'
+WHEN a.Month = '3' THEN 'March'
+WHEN a.Month = '4' THEN 'April'
+WHEN a.Month = '5' THEN 'May'
+WHEN a.Month = '6' THEN 'June'
+WHEN a.Month = '7' THEN 'July'
+WHEN a.Month = '8' THEN 'August'
+WHEN a.Month = '9' THEN 'September'
+WHEN a.Month = '10' THEN 'October'
+WHEN a.Month = '11' THEN 'November'
+WHEN a.Month = '12' THEN 'December'
+ELSE NULL
+END AS 'Month'
+FROM
+(SELECT DISTINCT
+SUBSTRING_INDEX(`year_month`,'-', 1) as Year,
+SUBSTRING_INDEX(SUBSTRING_INDEX(`year_month`,'-',2),'-', -1) as Month
+FROM nyc_real_estate_original.city_realty_median) as a
+WHERE Year NOT IN (SELECT DISTINCT Year FROM nyc_real_estate_dw_agg.date)
+AND Month  NOT IN (SELECT DISTINCT Month FROM nyc_real_estate_dw_agg.`date`) 
 ;
 
 
 
-SELECT * FROM nyc_real_estate_dw.building_sale;
+INSERT INTO nyc_real_estate_dw_agg.`date` (`year`, `month`)
+SELECT DISTINCT a.YEAR as 'Year', 
+CASE
+WHEN a.Month = '01' THEN 'January'
+WHEN a.Month = '02' THEN 'February'
+WHEN a.Month = '03' THEN 'March'
+WHEN a.Month = '04' THEN 'April'
+WHEN a.Month = '05' THEN 'May'
+WHEN a.Month = '06' THEN 'June'
+WHEN a.Month = '07' THEN 'July'
+WHEN a.Month = '08' THEN 'August'
+WHEN a.Month = '09' THEN 'September'
+WHEN a.Month = '10' THEN 'October'
+WHEN a.Month = '11' THEN 'November'
+WHEN a.Month = '12' THEN 'December'
+END AS 'Month'
+FROM(
+SELECT DISTINCT sale_date, 
+SUBSTRING_INDEX(sale_date,'-',1) AS 'YEAR',
+SUBSTRING_INDEX(SUBSTRING_INDEX(sale_date,'-',-2),'-',1) AS 'Month'
+FROM nyc_real_estate_original.nyc_rolling) as a
+WHERE Year NOT IN (SELECT year FROM nyc_real_estate_dw_agg.`date`)
+AND Month NOT IN (SELECT month FROM nyc_real_estate_dw_agg.`date`);
 
-INSERT INTO nyc_real_estate_dw.building_sale (date_key, location_key, building_type_key, source_key, sale_price)
-SELECT date_key, 
-location_key,
-building_type_key,
-2, 
-sale_price
-FROM nyc_real_estate_original.nyc_rolling 
-INNER JOIN nyc_real_estate_dw.date
-ON nyc_real_estate_original.nyc_rolling.sale_date = nyc_real_estate_dw.date.date_string
-INNER JOIN nyc_real_estate_dw.building_type 
-ON nyc_real_estate_original.nyc_rolling.tax_class_at_present = nyc_real_estate_dw.building_type.tax_key
-INNER JOIN nyc_real_estate_dw.location
-ON CONCAT('NYC-', nyc_real_estate_original.nyc_rolling.nyc_rolling_key) = nyc_real_estate_dw.location.source_key 
-WHERE sale_price > 0
+
+INSERT INTO nyc_real_estate_dw_agg.neighborhood(`zip code`, `neighborhood`, `borough`)
+SELECT CAST(CAST(a.zip_code as UNSIGNED) AS char) as 'Zip Code', 
+a.neighborhood as 'Neighborhood',
+CASE 
+WHEN a.borough = '1' THEN 'Manhattan'
+WHEN a.borough = '2' THEN 'Bronx'
+WHEN a.borough = '3' THEN 'Brooklyn'
+WHEN a.borough ='4' THEN 'Queens'
+WHEN a.borough = '5' THEN 'Staten Island'
+END as 'Borough'
+FROM(
+SELECT DISTINCT zip_code, neighborhood,borough
+FROM nyc_real_estate_original.nyc_rolling
+WHERE zip_code IS NOT NULL 
+AND zip_code NOT IN ('', ' ')
+GROUP BY zip_code) as a
+WHERE   CAST(CAST(a.zip_code as UNSIGNED) AS char) NOT IN (SELECT DISTINCT `zip code` FROM nyc_real_estate_dw_agg.neighborhood)
 ;
 
-SELECT count(*) FROM nyc_real_estate_dw.building_sale;
+INSERT INTO nyc_real_estate_dw_agg.neighborhood (`zip code`, `neighborhood`, `borough`)
+SELECT CAST(CAST(a.zip_code as UNSIGNED) AS char) as `zip_code`, UPPER(a.neighborhood), 'Unknown'
+FROM 
+(SELECT DISTINCT zip_code, neighborhood  FROM nyc_real_estate_original.city_realty
+WHERE zip_code IS NOT NULL 
+AND zip_code NOT IN ('', ' ')
+GROUP BY zip_code ) as a
+WHERE  CAST(CAST(a.zip_code as UNSIGNED) AS char) NOT IN (SELECT DISTINCT `zip code` FROM nyc_real_estate_dw_agg.neighborhood)
+;
+
+INSERT INTO nyc_real_estate_dw_agg.neighborhood (`zip code`)
+SELECT a.zip_code
+FROM 
+(SELECT DISTINCT zip_code FROM nyc_real_estate_original.zillow
+WHERE zip_code IS NOT NULL 
+AND zip_code NOT IN ('', ' ')
+GROUP BY zip_code ) as a
+WHERE  a.zip_code NOT IN (SELECT DISTINCT `zip code` FROM nyc_real_estate_dw_agg.neighborhood)
+; 
+
+END
